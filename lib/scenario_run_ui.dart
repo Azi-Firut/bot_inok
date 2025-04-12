@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:bot_inok/const.dart';
-import 'package:bot_inok/logic/mouse_activity.dart';
+
 import 'package:bot_inok/logic/print_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
 
 import 'logic/position_identify.dart';
@@ -29,14 +27,15 @@ class Scenario {
   Scenario({required this.name, required this.steps});
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    'steps': steps.map((s) => s.toJson()).toList(),
-  };
+        'name': name,
+        'steps': steps.map((s) => s.toJson()).toList(),
+      };
 
   static Scenario fromJson(Map<String, dynamic> json) {
     return Scenario(
       name: json['name'],
-      steps: (json['steps'] as List).map((s) => ScenarioStep.fromJson(s)).toList(),
+      steps:
+          (json['steps'] as List).map((s) => ScenarioStep.fromJson(s)).toList(),
     );
   }
 }
@@ -46,13 +45,14 @@ class ScenarioStep {
   String command;
   String action;
 
-  ScenarioStep({required this.trigger, required this.command, required this.action});
+  ScenarioStep(
+      {required this.trigger, required this.command, required this.action});
 
   Map<String, dynamic> toJson() => {
-    'trigger': trigger,
-    'command': command,
-    'action': action,
-  };
+        'trigger': trigger,
+        'command': command,
+        'action': action,
+      };
 
   static ScenarioStep fromJson(Map<String, dynamic> json) {
     return ScenarioStep(
@@ -69,8 +69,13 @@ class ScenarioScreen extends StatefulWidget {
 }
 
 class _ScenarioScreenState extends State<ScenarioScreen> {
+  bool _isExecuting = false;
   List<Scenario> scenarios = [];
-  List<String> commands = ['Левый Клик', 'Левый Клик 2х', 'Переместить курсор']; // Заглушки
+  List<String> commands = [
+    'Левый Клик',
+    'Левый Клик 2х',
+    'Переместить курсор'
+  ]; // Заглушки
   Map<Scenario, bool> selectedScenarios = {};
 
   @override
@@ -87,7 +92,9 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
       String jsonContent = await scenarioFile.readAsString();
       Map<String, dynamic> data = jsonDecode(jsonContent);
       setState(() {
-        scenarios = (data['scenarios'] as List).map((s) => Scenario.fromJson(s)).toList();
+        scenarios = (data['scenarios'] as List)
+            .map((s) => Scenario.fromJson(s))
+            .toList();
         for (var scenario in scenarios) {
           selectedScenarios[scenario] = false;
         }
@@ -95,24 +102,28 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
     }
   }
 
-  void _executeSelectedScenarios() {
+  void _executeSelectedScenarios() async {
+    setState(() => _isExecuting = true);
     for (var scenario in scenarios) {
       if (selectedScenarios[scenario] == true) {
+        print("🚀 Выполняется сценарий: ${scenario.name}");
         for (var step in scenario.steps) {
           ScreenshotTaker().start();
-          positionIdentifyLoop(step.trigger,step.action,step.command);
-          print("scenario.steps ${scenario.steps}");
-          print("step ${step.runtimeType}");
-          print("Executing: Trigger=${step.trigger}, Command=${step.command}, Action=${step.action}");
+          await positionIdentifyLoop(
+              step.trigger, step.action, step.command); // 💡 await
+          print(
+              "✅ Завершён шаг: Trigger=${step.trigger}, Command=${step.command}, Action=${step.action}");
         }
+        print("✅ Сценарий '${scenario.name}' завершён\n");
       }
     }
+    setState(() => _isExecuting = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     // appBar: AppBar(title: Text('Scenario Executor')),
+      // appBar: AppBar(title: Text('Scenario Executor')),
       body: Column(
         children: [
           Expanded(
@@ -134,7 +145,7 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
             ),
           ),
           ElevatedButton(
-            onPressed: _executeSelectedScenarios,
+            onPressed: _isExecuting ? null : _executeSelectedScenarios,
             child: Text('Execute Selected'),
           ),
         ],

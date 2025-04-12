@@ -1,12 +1,12 @@
 import 'dart:async';
-import 'package:dartcv4/core.dart';
-import 'package:dartcv4/dartcv.dart';
+
 import 'package:dartcv4/dartcv.dart' as Imgproc;
+import 'package:dartcv4/dartcv.dart';
+
 import '../const.dart';
 import 'mouse_activity.dart';
 
 void executeCommand(String command) {
-
   switch (command) {
     case 'Левый Клик':
       moveCursor(mouseX, mouseY);
@@ -29,8 +29,7 @@ void executeCommand(String command) {
   }
 }
 
-void positionIdentifyLoop(triggerStep,actionStep,commandStep) async {
-
+positionIdentifyLoop(triggerStep, actionStep, commandStep) async {
   String saveResultImagePath = resultOfScanDir.path;
 
   Mat trigger = imread(triggerStep); //пути к картинкам
@@ -43,9 +42,10 @@ void positionIdentifyLoop(triggerStep,actionStep,commandStep) async {
 
   while (true) {
     // 1. Обновление скриншота
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(Duration(milliseconds: 300));
     String screenshotPath = '${shotDir.path}\\shot.png';
     Mat screenshot = imread(screenshotPath);
+    //moveCursor(0, 0);
 
     if (screenshot.isEmpty) {
       print("Ошибка: скриншот не найден.");
@@ -61,14 +61,15 @@ void positionIdentifyLoop(triggerStep,actionStep,commandStep) async {
       print("Триггер найден в ($centerX, $centerY)");
 
       // Рисуем найденный триггер
-      Rect rect = Rect(triggerPos.x, triggerPos.y, trigger.width, trigger.height);
+      Rect rect =
+          Rect(triggerPos.x, triggerPos.y, trigger.width, trigger.height);
       rectangle(screenshot, rect, Scalar(0, 255, 0));
       circle(screenshot, Point(centerX, centerY), 5, Scalar(0, 0, 255));
       imwrite('$saveResultImagePath/result_trigger.png', screenshot);
 
       // 3. Запускаем 10 секундный цикл поиска action
       final stopwatch = Stopwatch()..start();
-      while (stopwatch.elapsed.inSeconds < 10) {
+      while (stopwatch.elapsed.inMilliseconds < 99) {
         await Future.delayed(Duration(milliseconds: 100));
         Mat updatedShot = imread(screenshotPath);
         if (updatedShot.isEmpty) continue;
@@ -82,12 +83,16 @@ void positionIdentifyLoop(triggerStep,actionStep,commandStep) async {
           mouseY = actY;
 
           // Отмечаем и сохраняем результат
-          Rect rect = Rect(actionPos.x, actionPos.y, action.width, action.height);
+          Rect rect =
+              Rect(actionPos.x, actionPos.y, action.width, action.height);
           rectangle(updatedShot, rect, Scalar(255, 0, 0));
           circle(updatedShot, Point(actX, actY), 5, Scalar(0, 255, 255));
           imwrite('$saveResultImagePath/result_action.png', updatedShot);
+
           /// TEST (works)
           executeCommand(commandStep);
+          return;
+
           ///
           break; // нашли action — выходим из 10-секундного цикла
         }
@@ -111,10 +116,10 @@ Point? _matchTemplate(Mat source, Mat template) {
 
   var (minVal, maxVal, minLoc, maxLoc) = minMaxLoc(result);
 
-  if (maxVal > 0.9) { // порог уверенности  0.8
+  if (maxVal > 0.9) {
+    // порог уверенности  0.8
     return maxLoc;
   } else {
     return null;
   }
 }
-
