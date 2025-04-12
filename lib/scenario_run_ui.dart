@@ -102,22 +102,52 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
     }
   }
 
+  // void _executeSelectedScenarios() async {
+  //   setState(() => _isExecuting = true);
+  //   for (var scenario in scenarios) {
+  //     if (selectedScenarios[scenario] == true) {
+  //       print("🚀 Выполняется сценарий: ${scenario.name}");
+  //       for (var step in scenario.steps) {
+  //         ScreenshotTaker().start();
+  //         await positionIdentifyLoop(
+  //             step.trigger, step.action, step.command); // 💡 await
+  //         print(
+  //             "✅ Завершён шаг: Trigger=${step.trigger}, Command=${step.command}, Action=${step.action}");
+  //       }
+  //       print("✅ Сценарий '${scenario.name}' завершён\n");
+  //     }
+  //   }
+  //   setState(() => _isExecuting = false);
+  // }
+
   void _executeSelectedScenarios() async {
     setState(() => _isExecuting = true);
+
+    // Запускаем каждый выбранный сценарий как отдельный Future
+    List<Future<void>> scenarioFutures = [];
+
     for (var scenario in scenarios) {
       if (selectedScenarios[scenario] == true) {
-        print("🚀 Выполняется сценарий: ${scenario.name}");
-        for (var step in scenario.steps) {
-          ScreenshotTaker().start();
-          await positionIdentifyLoop(
-              step.trigger, step.action, step.command); // 💡 await
-          print(
-              "✅ Завершён шаг: Trigger=${step.trigger}, Command=${step.command}, Action=${step.action}");
-        }
-        print("✅ Сценарий '${scenario.name}' завершён\n");
+        scenarioFutures.add(_runScenario(scenario));
       }
     }
+
+    await Future.wait(scenarioFutures); // Ждём, пока все сценарии завершатся
+
     setState(() => _isExecuting = false);
+  }
+
+  Future<void> _runScenario(Scenario scenario) async {
+    print("🚀 Запуск сценария: ${scenario.name}");
+
+    for (var step in scenario.steps) {
+      ScreenshotTaker().start();
+      await positionIdentifyLoop(
+          step.trigger, step.action, step.command); // последовательность
+      print("✅ Завершён шаг: ${step.command}");
+    }
+
+    print("✅ Сценарий '${scenario.name}' завершён");
   }
 
   @override
