@@ -95,35 +95,12 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
     }
   }
 
-  void executeCommand(String command) {
-
-    switch (command) {
-      case 'Левый Клик':
-        moveCursor(mouseX, mouseY);
-        Future.delayed(Duration(milliseconds: 100));
-        leftClick();
-        break;
-      case 'Левый Клик 2х':
-        moveCursor(mouseX, mouseY);
-        Future.delayed(Duration(milliseconds: 100));
-        leftClickDouble();
-        break;
-      case 'Переместить курсор':
-        moveCursor(mouseX, mouseY);
-        break;
-      default:
-        print("Unknown command: $command");
-    }
-  }
-
-
-
   void _executeSelectedScenarios() {
     for (var scenario in scenarios) {
       if (selectedScenarios[scenario] == true) {
         for (var step in scenario.steps) {
           ScreenshotTaker().start();
-          positionIdentifyLoop();
+          positionIdentifyLoop(step.trigger,step.action,step.command);
           print("scenario.steps ${scenario.steps}");
           print("step ${step.runtimeType}");
           print("Executing: Trigger=${step.trigger}, Command=${step.command}, Action=${step.action}");
@@ -135,7 +112,7 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Scenario Executor')),
+     // appBar: AppBar(title: Text('Scenario Executor')),
       body: Column(
         children: [
           Expanded(

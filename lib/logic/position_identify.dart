@@ -1,20 +1,40 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:dartcv4/core.dart';
 import 'package:dartcv4/dartcv.dart';
 import 'package:dartcv4/dartcv.dart' as Imgproc;
-import 'package:path/path.dart' as path;
 import '../const.dart';
 import 'mouse_activity.dart';
 
-void positionIdentifyLoop() async {
-  //String screenshotPath = shotDir.path;
-  String triggerImagePath = triggerDir.path;
-  String actionImagePath = actionDir.path;
+void executeCommand(String command) {
+
+  switch (command) {
+    case 'Левый Клик':
+      moveCursor(mouseX, mouseY);
+      Future.delayed(Duration(milliseconds: 100));
+      print("Левый Клик");
+      leftClick();
+      break;
+    case 'Левый Клик 2х':
+      moveCursor(mouseX, mouseY);
+      Future.delayed(Duration(milliseconds: 100));
+      print("Левый Клик 2х");
+      leftClickDouble();
+      break;
+    case 'Переместить курсор':
+      print("Переместить курсор");
+      moveCursor(mouseX, mouseY);
+      break;
+    default:
+      print("Unknown command: $command");
+  }
+}
+
+void positionIdentifyLoop(triggerStep,actionStep,commandStep) async {
+
   String saveResultImagePath = resultOfScanDir.path;
 
-  Mat trigger = imread('$triggerImagePath\\trigger.png');
-  Mat action = imread('$actionImagePath\\action.png');
+  Mat trigger = imread(triggerStep); //пути к картинкам
+  Mat action = imread(actionStep); //пути к картинкам
 
   if (trigger.isEmpty || action.isEmpty) {
     print("Ошибка загрузки trigger/action изображения.");
@@ -37,8 +57,6 @@ void positionIdentifyLoop() async {
     if (triggerPos != null) {
       int centerX = triggerPos.x + trigger.width ~/ 2;
       int centerY = triggerPos.y + trigger.height ~/ 2;
-      //mouseX = centerX;
-      //mouseY = centerY;
 
       print("Триггер найден в ($centerX, $centerY)");
 
@@ -51,7 +69,7 @@ void positionIdentifyLoop() async {
       // 3. Запускаем 10 секундный цикл поиска action
       final stopwatch = Stopwatch()..start();
       while (stopwatch.elapsed.inSeconds < 10) {
-        await Future.delayed(Duration(seconds: 1));
+        await Future.delayed(Duration(milliseconds: 100));
         Mat updatedShot = imread(screenshotPath);
         if (updatedShot.isEmpty) continue;
 
@@ -69,16 +87,11 @@ void positionIdentifyLoop() async {
           circle(updatedShot, Point(actX, actY), 5, Scalar(0, 255, 255));
           imwrite('$saveResultImagePath/result_action.png', updatedShot);
           /// TEST (works)
-          moveCursor(mouseX, mouseY);
-          Future.delayed(Duration(milliseconds: 100));
-          leftClickDouble();
+          executeCommand(commandStep);
           ///
-         // moveCursor(mouseX, mouseY);
-         // executeCommand(step.command);
           break; // нашли action — выходим из 10-секундного цикла
         }
       }
-
       // После 10 секунд вернёмся к поиску триггера
     }
   }
@@ -98,85 +111,10 @@ Point? _matchTemplate(Mat source, Mat template) {
 
   var (minVal, maxVal, minLoc, maxLoc) = minMaxLoc(result);
 
-  if (maxVal > 0.8) { // порог уверенности
+  if (maxVal > 0.9) { // порог уверенности  0.8
     return maxLoc;
   } else {
     return null;
   }
 }
 
-
-
-
-
-// import 'dart:io';
-// import 'package:dartcv4/core.dart';
-// import 'package:dartcv4/dartcv.dart';
-// import 'package:dartcv4/dartcv.dart' as Imgproc;
-//
-// import '../const.dart';
-//
-// void positionIdentify() {
-//   // Пути к изображениям
-//   String screenshotPath = shotDir.path;
-//   String triggerImagePath = triggerDir.path;
-//   String saveResultImagePath = resultOfScanDir.path;
-//   String actionImagePath = actionDir.path;
-//   /// ACTION
-//   //String actionImagePath = pathToActionImage;
-//   //Mat action = imread('$actionImagePath/action.png');
-//
-//   // Загружаем изображения
-//   Mat screenshot = imread('$screenshotPath/shot.png');
-//   Mat trigger = imread('$triggerImagePath/trigger.png');
-//   Mat action = imread('$actionImagePath/action.png');
-//
-//   // Проверяем, загружены ли изображения
-//   if (screenshot.isEmpty || trigger.isEmpty) {
-//     print("Ошибка: не удалось загрузить изображения trigger.");
-//     return;
-//   }
-//   if (screenshot.isEmpty || action.isEmpty) {
-//     print("Ошибка: не удалось загрузить изображения action.");
-//     return;
-//   }
-//   // Создаем матрицу для результата
-//   int resultCols = screenshot.width - trigger.width + 1;
-//   int resultRows = screenshot.height - trigger.height + 1;
-//   Mat result = Mat.zeros(resultRows, resultCols, MatType.CV_32FC1);
-//
-//   // Применяем matchTemplate
-//   matchTemplate(screenshot, trigger, Imgproc.TM_CCOEFF_NORMED, result: result);
-//
-//   // Ищем максимальное совпадение
-//   var (minVal, maxVal, minLoc, maxLoc) = minMaxLoc(result);
-//   Point topLeft = maxLoc;
-//
-//   int foundX = topLeft.x.toInt();
-//   int foundY = topLeft.y.toInt();
-//   int centerX = foundX + trigger.width ~/ 2;
-//   int centerY = foundY + trigger.height ~/ 2;
-//   // Передаём глобальные координаты найденного центра для мышки
-//   mouseX=centerX;
-//   mouseY=centerY;
-//
-//   print("Координаты верхнего левого угла: ($foundX, $foundY)");
-//   print("Центр малой картинки: ($centerX, $centerY)");
-//
-//   // Создаем прямоугольник вокруг найденной области
-//   Rect rect = Rect(topLeft.x, topLeft.y, trigger.width, trigger.height);
-//   rectangle(screenshot, rect, Scalar(0, 255, 0)); // Теперь корректный вызов!
-//
-//   // Рисуем точку в центре найденного объекта
-//   circle(screenshot, Point(centerX, centerY), 5, Scalar(0, 0, 255)); // Добавлен цвет
-//
-//
-//   // Сохраняем результат
-//   print("Текущая директория: ${Directory.current.path}");
-//
-//   imwrite('$saveResultImagePath/result.png', screenshot);
-//
-//  // imwrite('result.png', screenshot);
-//
-//   print("Результат сохранен в result.png");
-// }

@@ -18,6 +18,7 @@ class BotInok extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: ScenarioMainScreen(),
     );
   }
@@ -64,14 +65,79 @@ class _ScenarioMainScreenState extends State<ScenarioMainScreen> with SingleTick
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Scenario Manager'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(text: 'Editor'),
-            Tab(text: 'Executor'),
-          ],
+      appBar: PreferredSize(
+        preferredSize: Size(double.infinity, 70),
+        child: AppBar(
+          title: Center(child: Text('Scenario Manager',style: TextStyle(fontSize: 16),)),
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFFF1F1F1), // Начальный цвет
+                //  Color(0xFFFFFFFF),
+                //  Color(0xFFFFFFFF),
+                  Color(0xFFD9D9D9), // Конечный цвет
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                  stops: [
+                        0.0,
+                      //  0.4,
+                     //   0.5,
+                        0.9,
+                      ],
+              ),
+            ),
+          ),
+          bottom: TabBar(
+            overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                  (Set<WidgetState> states) {
+                if (states.contains(WidgetState.hovered)) {
+                  return Color(0xE0E0E0); // Цвет при наведении
+                }
+                if (states.contains(WidgetState.pressed)) {
+                  return Color(0xFFE30F0F); // Цвет при клике (опционально)
+                }
+                return null; // По умолчанию
+              },
+            ),
+            controller: _tabController,
+            labelPadding: EdgeInsets.symmetric(vertical: 0,horizontal: 20), // минимальные отступы
+            indicatorPadding: EdgeInsets.symmetric(vertical: 0),
+            indicatorSize: TabBarIndicatorSize.tab,
+            indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(0.0),
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xF1F1F1), // Начальный цвет
+                    //  Color(0xFFFFFFFF),
+                    //  Color(0xFFFFFFFF),
+                    Color(0xFFFFFFFF), // Конечный цвет
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: [
+                    0.0,
+                    //  0.4,
+                    //   0.5,
+                    0.9,
+                  ],
+                ),
+              //  color: Color(0xFFB62828)
+            ),
+            labelColor: Color(0xFF262626),
+           // overlayColor: Color(0xFF6E3636),
+            unselectedLabelColor: Color(0xFF8C8C8C),
+            tabs: const [
+              Tab(text: 'Editor'),
+              Tab(text: 'Executor'),
+            ],
+          ),
+
+
+          backgroundColor: Colors.transparent, // Чтобы градиент был виден
+          elevation: 6,
+          shadowColor: Color(0x8E3F3F3F),// По желанию: убирает тень
         ),
       ),
       body: TabBarView(

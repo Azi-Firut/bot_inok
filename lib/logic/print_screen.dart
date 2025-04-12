@@ -43,7 +43,7 @@ class ScreenshotTaker {
 
    start() {
     if (isRunning) return; // Уже запущено
-    print('isRunning $isRunning');
+   // print('isRunning $isRunning');
     isRunning = true;
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       _captureScreenshot();
@@ -98,7 +98,7 @@ class ScreenshotTaker {
 
     final file = File(_savePath);
     file.writeAsBytesSync(img.encodePng(image));
-    print('Скриншот сохранен: $_savePath');
+    //print('Скриншот сохранен: $_savePath');
 
     calloc.free(buffer);
     calloc.free(bmi);
