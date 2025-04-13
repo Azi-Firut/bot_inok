@@ -20,9 +20,27 @@ void executeCommand(String command) {
       print("Левый Клик 2х");
       leftClickDouble();
       break;
+    case 'Левый Клик Зажать':
+      moveCursor(mouseX, mouseY);
+      Future.delayed(Duration(milliseconds: 100));
+      print("Левый Клик 2х");
+      holdLeftClick();
+      break;
+    case 'Левый Клик Отпустить':
+      moveCursor(mouseX, mouseY);
+      Future.delayed(Duration(milliseconds: 100));
+      print("Левый Клик 2х");
+      releaseLeftClick();
+      break;
     case 'Переместить курсор':
       print("Переместить курсор");
       moveCursor(mouseX, mouseY);
+      break;
+    case 'Правый Клик':
+      moveCursor(mouseX, mouseY);
+      Future.delayed(Duration(milliseconds: 100));
+      print("Левый Клик 2х");
+      rightClick();
       break;
     default:
       print("Unknown command: $command");

@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
+
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 
 void main() {
@@ -12,7 +13,7 @@ class ScenarioEditorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-     // color: Colors.red,
+      // color: Colors.red,
       debugShowCheckedModeBanner: false,
       home: ScenarioEditorScreen(),
     );
@@ -26,14 +27,15 @@ class Scenario {
   Scenario({required this.name, required this.steps});
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    'steps': steps.map((s) => s.toJson()).toList(),
-  };
+        'name': name,
+        'steps': steps.map((s) => s.toJson()).toList(),
+      };
 
   static Scenario fromJson(Map<String, dynamic> json) {
     return Scenario(
       name: json['name'],
-      steps: (json['steps'] as List).map((s) => ScenarioStep.fromJson(s)).toList(),
+      steps:
+          (json['steps'] as List).map((s) => ScenarioStep.fromJson(s)).toList(),
     );
   }
 }
@@ -43,13 +45,14 @@ class ScenarioStep {
   String command;
   String action;
 
-  ScenarioStep({required this.trigger, required this.command, required this.action});
+  ScenarioStep(
+      {required this.trigger, required this.command, required this.action});
 
   Map<String, dynamic> toJson() => {
-    'trigger': trigger,
-    'command': command,
-    'action': action,
-  };
+        'trigger': trigger,
+        'command': command,
+        'action': action,
+      };
 
   static ScenarioStep fromJson(Map<String, dynamic> json) {
     return ScenarioStep(
@@ -67,7 +70,11 @@ class ScenarioEditorScreen extends StatefulWidget {
 
 class _ScenarioEditorScreenState extends State<ScenarioEditorScreen> {
   List<Scenario> scenarios = [];
-  List<String> commands = ['Левый Клик', 'Левый Клик 2х', 'Переместить курсор']; // Заглушки
+  List<String> commands = [
+    'Левый Клик',
+    'Левый Клик 2х',
+    'Переместить курсор'
+  ]; // Заглушки
 
   @override
   void initState() {
@@ -83,25 +90,30 @@ class _ScenarioEditorScreenState extends State<ScenarioEditorScreen> {
 
   void _addStep(Scenario scenario) {
     setState(() {
-      scenario.steps.add(ScenarioStep(trigger: '', command: 'Левый Клик', action: ''));
+      scenario.steps
+          .add(ScenarioStep(trigger: '', command: 'Левый Клик', action: ''));
     });
   }
 
   Future<void> _pickFile(Function(String) onFilePicked) async {
-    String? filePath = await FilePicker.platform.pickFiles(type: FileType.image).then((result) => result?.files.single.path);
+    String? filePath = await FilePicker.platform
+        .pickFiles(type: FileType.image)
+        .then((result) => result?.files.single.path);
     if (filePath != null) {
       onFilePicked(filePath);
     }
   }
 
   void _saveScenarios() {
-    final exeDir = File(Platform.resolvedExecutable).parent.path; // Папка с .exe
+    final exeDir =
+        File(Platform.resolvedExecutable).parent.path; // Папка с .exe
     final scenarioDir = Directory(path.join(exeDir, 'scenario'));
 
     if (!scenarioDir.existsSync()) {
       scenarioDir.createSync(recursive: true); // Создаем, если нет
     }
-    String jsonContent = jsonEncode({'scenarios': scenarios.map((s) => s.toJson()).toList()});
+    String jsonContent =
+        jsonEncode({'scenarios': scenarios.map((s) => s.toJson()).toList()});
     File('${scenarioDir.path}/plot.json').writeAsString(jsonContent);
   }
 
@@ -136,7 +148,10 @@ class _ScenarioEditorScreenState extends State<ScenarioEditorScreen> {
       );
     } else {
       return IconButton(
-        icon: Icon(Icons.image_search_outlined,size: 32,),
+        icon: Icon(
+          Icons.image_search_outlined,
+          size: 32,
+        ),
         onPressed: onPressed,
       );
     }
@@ -145,7 +160,7 @@ class _ScenarioEditorScreenState extends State<ScenarioEditorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-backgroundColor: Color(0xFFD7D7D7),
+      backgroundColor: Color(0xFFD7D7D7),
       // appBar: AppBar(
       //
       //     title: Text('Scenario Editor')),
@@ -153,7 +168,7 @@ backgroundColor: Color(0xFFD7D7D7),
         children: [
           for (int i = 0; i < scenarios.length; i++)
             Padding(
-              padding: const EdgeInsets.only(top: 8.0,left: 8,right: 8),
+              padding: const EdgeInsets.only(top: 8.0, left: 8, right: 8),
               child: Card(
                 color: Color(0xFFFFFFFF),
                 elevation: 6,
@@ -161,15 +176,17 @@ backgroundColor: Color(0xFFD7D7D7),
                   children: [
                     Row(
                       children: [
-                       // Checkbox(value: true, onChanged: (value) {}),
+                        // Checkbox(value: true, onChanged: (value) {}),
                         Expanded(
                           flex: 5,
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: TextField(
-                              controller: TextEditingController(text: scenarios[i].name),
+                              controller: TextEditingController(
+                                  text: scenarios[i].name),
                               onChanged: (value) => scenarios[i].name = value,
-                              decoration: InputDecoration(labelText: 'Scenario Name'),
+                              decoration:
+                                  InputDecoration(labelText: 'Scenario Name'),
                             ),
                           ),
                         ),
@@ -180,8 +197,6 @@ backgroundColor: Color(0xFFD7D7D7),
                             onPressed: () => _removeScenario(i),
                           ),
                         ),
-
-
                       ],
                     ),
                     for (var step in scenarios[i].steps)
@@ -189,28 +204,39 @@ backgroundColor: Color(0xFFD7D7D7),
                         children: [
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: _buildImageOrIcon(step.trigger, () => _pickFile((path) => setState(() => step.trigger = path))),
+                            child: _buildImageOrIcon(
+                                step.trigger,
+                                () => _pickFile((path) =>
+                                    setState(() => step.trigger = path))),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: DropdownButton<String>(
                               value: step.command,
-                              onChanged: (value) => setState(() => step.command = value!),
-                              items: commands.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                              onChanged: (value) =>
+                                  setState(() => step.command = value!),
+                              items: commands
+                                  .map((c) => DropdownMenuItem(
+                                      value: c, child: Text(c)))
+                                  .toList(),
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: _buildImageOrIcon(step.action, () => _pickFile((path) => setState(() => step.action = path))),
+                            child: _buildImageOrIcon(
+                                step.action,
+                                () => _pickFile((path) =>
+                                    setState(() => step.action = path))),
                           ),
                         ],
                       ),
                     Align(
                       alignment: Alignment.centerRight,
                       child: Padding(
-                        padding: const EdgeInsets.only(right: 8.0,bottom: 8),
+                        padding: const EdgeInsets.only(right: 8.0, bottom: 8),
                         child: IconButton(
-                          icon: Icon(Icons.add,
+                          icon: Icon(
+                            Icons.add,
                             //size: 48,
                           ),
                           onPressed: () => _addStep(scenarios[i]),
@@ -222,7 +248,8 @@ backgroundColor: Color(0xFFD7D7D7),
               ),
             ),
           Padding(
-            padding: const EdgeInsets.only(left: 12.0,right: 12,bottom: 16,top: 12),
+            padding: const EdgeInsets.only(
+                left: 12.0, right: 12, bottom: 16, top: 12),
             child: Row(
               children: [
                 Padding(
@@ -230,13 +257,16 @@ backgroundColor: Color(0xFFD7D7D7),
                   child: ElevatedButton(
                     onPressed: _addScenario,
                     style: ButtonStyle(
-                        elevation: WidgetStatePropertyAll(6),
-                      backgroundColor: WidgetStatePropertyAll<Color>(Color(0xFFFFFFFF)),
+                      elevation: WidgetStatePropertyAll(6),
+                      backgroundColor:
+                          WidgetStatePropertyAll<Color>(Color(0xFFFFFFFF)),
                     ),
-                    child: Text('Add Scenario',
+                    child: Text(
+                      'Add Scenario',
                       style: TextStyle(
                         color: Color(0xFF000000),
-                      ),),
+                      ),
+                    ),
                   ),
                 ),
                 Padding(
@@ -244,181 +274,23 @@ backgroundColor: Color(0xFFD7D7D7),
                   child: ElevatedButton(
                     onPressed: _saveScenarios,
                     style: ButtonStyle(
-
-                        elevation: WidgetStatePropertyAll(6),
-                      backgroundColor: WidgetStatePropertyAll<Color>(Color(0xFFFFFFFF)),
+                      elevation: WidgetStatePropertyAll(6),
+                      backgroundColor:
+                          WidgetStatePropertyAll<Color>(Color(0xFFFFFFFF)),
                     ),
-                    child: Text('Save Scenarios',
-                        style: TextStyle(
-                          color: Color(0xFF000000),
-                        ),
+                    child: Text(
+                      'Save Scenarios',
+                      style: TextStyle(
+                        color: Color(0xFF000000),
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-
         ],
       ),
     );
   }
 }
-
-
-
-
-
-// import 'dart:convert';
-// import 'dart:io';
-// import 'package:flutter/material.dart';
-// import 'package:file_picker/file_picker.dart';
-// import 'package:path/path.dart' as path;
-//
-// void main() {
-//   runApp(ScenarioEditorApp());
-// }
-//
-// class ScenarioEditorApp extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       home: ScenarioEditorScreen(),
-//     );
-//   }
-// }
-//
-// class Scenario {
-//   String name;
-//   List<ScenarioStep> steps;
-//
-//   Scenario({required this.name, required this.steps});
-//
-//   Map<String, dynamic> toJson() => {
-//     'name': name,
-//     'steps': steps.map((s) => s.toJson()).toList(),
-//   };
-//
-//   static Scenario fromJson(Map<String, dynamic> json) {
-//     return Scenario(
-//       name: json['name'],
-//       steps: (json['steps'] as List).map((s) => ScenarioStep.fromJson(s)).toList(),
-//     );
-//   }
-// }
-//
-// class ScenarioStep {
-//   String trigger;
-//   String command;
-//   String action;
-//
-//   ScenarioStep({required this.trigger, required this.command, required this.action});
-//
-//   Map<String, dynamic> toJson() => {
-//     'trigger': trigger,
-//     'command': command,
-//     'action': action,
-//   };
-//
-//   static ScenarioStep fromJson(Map<String, dynamic> json) {
-//     return ScenarioStep(
-//       trigger: json['trigger'],
-//       command: json['command'],
-//       action: json['action'],
-//     );
-//   }
-// }
-//
-// class ScenarioEditorScreen extends StatefulWidget {
-//   @override
-//   _ScenarioEditorScreenState createState() => _ScenarioEditorScreenState();
-// }
-//
-// class _ScenarioEditorScreenState extends State<ScenarioEditorScreen> {
-//   List<Scenario> scenarios = [];
-//   List<String> commands = ['Левый Клик', 'Левый Клик 2х', 'Переместить курсор']; // Заглушки
-//
-//   void _addScenario() {
-//     setState(() {
-//       scenarios.add(Scenario(name: 'Новый сценарий', steps: []));
-//     });
-//   }
-//
-//   void _addStep(Scenario scenario) {
-//     setState(() {
-//       scenario.steps.add(ScenarioStep(trigger: '', command: 'Левый Клик', action: ''));
-//     });
-//   }
-//
-//   Future<void> _pickFile(Function(String) onFilePicked) async {
-//     String? filePath = await FilePicker.platform.pickFiles(type: FileType.image).then((result) => result?.files.single.path);
-//     if (filePath != null) {
-//       onFilePicked(filePath);
-//     }
-//   }
-//
-//   void _saveScenarios() {
-//     final exeDir = File(Platform.resolvedExecutable).parent.path; // Папка с .exe
-//     final scenarioDir = Directory(path.join(exeDir, 'scenario'));
-//
-//     if (!scenarioDir.existsSync()) {
-//       scenarioDir.createSync(recursive: true); // Создаем, если нет
-//     }
-//     String jsonContent = jsonEncode({'scenarios': scenarios.map((s) => s.toJson()).toList()});
-//     File('${scenarioDir.path}/plot.json').writeAsString(jsonContent);
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: Text('Scenario Editor')),
-//       body: ListView(
-//         children: [
-//           for (var scenario in scenarios)
-//             Card(
-//               child: Column(
-//                 children: [
-//                   Row(
-//                     children: [
-//                       Checkbox(value: true, onChanged: (value) {}),
-//                       Expanded(
-//                         child: TextField(
-//                           controller: TextEditingController(text: scenario.name),
-//                           onChanged: (value) => scenario.name = value,
-//                           decoration: InputDecoration(labelText: 'Scenario Name'),
-//                         ),
-//                       ),
-//                       IconButton(
-//                         icon: Icon(Icons.add),
-//                         onPressed: () => _addStep(scenario),
-//                       ),
-//                     ],
-//                   ),
-//                   for (var step in scenario.steps)
-//                     Row(
-//                       children: [
-//                         IconButton(
-//                           icon: Icon(Icons.image),
-//                           onPressed: () => _pickFile((path) => setState(() => step.trigger = path)),
-//                         ),
-//                         DropdownButton<String>(
-//                           value: step.command,
-//                           onChanged: (value) => setState(() => step.command = value!),
-//                           items: commands.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-//                         ),
-//                         IconButton(
-//                           icon: Icon(Icons.image),
-//                           onPressed: () => _pickFile((path) => setState(() => step.action = path)),
-//                         ),
-//                       ],
-//                     ),
-//                 ],
-//               ),
-//             ),
-//           ElevatedButton(onPressed: _addScenario, child: Text('Add Scenario')),
-//           ElevatedButton(onPressed: _saveScenarios, child: Text('Save Scenarios')),
-//         ],
-//       ),
-//     );
-//   }
-// }

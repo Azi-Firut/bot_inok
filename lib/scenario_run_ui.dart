@@ -78,7 +78,10 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
   List<String> commands = [
     'Левый Клик',
     'Левый Клик 2х',
-    'Переместить курсор'
+    'Левый Клик Зажать',
+    'Левый Клик Отпустить',
+    'Переместить курсор',
+    'Правый Клик'
   ]; // Заглушки
   Map<Scenario, bool> selectedScenarios = {};
 
@@ -196,20 +199,40 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
               ],
             ),
           ),
-          ElevatedButton(
-            onPressed: _isExecuting ? null : _executeSelectedScenarios,
-            child: Text('Execute Selected'),
-          ),
-          ElevatedButton(
-            onPressed: _isExecuting
-                ? () {
-                    setState(() {
-                      _shouldStop = true;
-                    });
-                  }
-                : null,
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text('🛑 Остановить выполнение'),
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: ElevatedButton(
+                    onPressed: _isExecuting ? null : _executeSelectedScenarios,
+                    style: ButtonStyle(
+                      elevation: WidgetStatePropertyAll(6),
+                      backgroundColor:
+                          WidgetStatePropertyAll<Color>(Color(0xFFFFFFFF)),
+                    ),
+                    child: Text('Execute Selected'),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: _isExecuting
+                      ? () {
+                          setState(() {
+                            _shouldStop = true;
+                          });
+                        }
+                      : null,
+                  style: ButtonStyle(
+                    elevation: WidgetStatePropertyAll(6),
+                    backgroundColor:
+                        WidgetStatePropertyAll<Color>(Color(0xFFFFFFFF)),
+                  ),
+                  //style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  child: Text('🛑 Остановить выполнение'),
+                ),
+              ],
+            ),
           ),
         ],
       ),
