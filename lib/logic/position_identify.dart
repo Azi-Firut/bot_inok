@@ -61,15 +61,15 @@ positionIdentifyLoop(triggerStep, actionStep, commandStep) async {
       print("Триггер найден в ($centerX, $centerY)");
 
       // Рисуем найденный триггер
-      Rect rect =
-          Rect(triggerPos.x, triggerPos.y, trigger.width, trigger.height);
-      rectangle(screenshot, rect, Scalar(0, 255, 0));
-      circle(screenshot, Point(centerX, centerY), 5, Scalar(0, 0, 255));
-      imwrite('$saveResultImagePath/result_trigger.png', screenshot);
+      // Rect rect =
+      //     Rect(triggerPos.x, triggerPos.y, trigger.width, trigger.height);
+      // rectangle(screenshot, rect, Scalar(0, 255, 0));
+      // circle(screenshot, Point(centerX, centerY), 5, Scalar(0, 0, 255));
+      // imwrite('$saveResultImagePath/result_trigger.png', screenshot);
 
       // 3. Запускаем 10 секундный цикл поиска action
       final stopwatch = Stopwatch()..start();
-      while (stopwatch.elapsed.inMilliseconds < 99) {
+      while (stopwatch.elapsed.inMinutes < 99) {
         await Future.delayed(Duration(milliseconds: 100));
         Mat updatedShot = imread(screenshotPath);
         if (updatedShot.isEmpty) continue;

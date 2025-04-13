@@ -69,8 +69,12 @@ class ScenarioScreen extends StatefulWidget {
 }
 
 class _ScenarioScreenState extends State<ScenarioScreen> {
+  Map<Scenario, bool> loopedScenarios = {}; // для чекбоксов зацикливания
   bool _isExecuting = false;
+  bool _shouldStop = false;
+
   List<Scenario> scenarios = [];
+
   List<String> commands = [
     'Левый Клик',
     'Левый Клик 2х',
@@ -98,32 +102,20 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
         for (var scenario in scenarios) {
           selectedScenarios[scenario] = false;
         }
+        for (var scenario in scenarios) {
+          selectedScenarios[scenario] = false;
+          loopedScenarios[scenario] = false; // начальное значение
+        }
       });
     }
   }
 
-  // void _executeSelectedScenarios() async {
-  //   setState(() => _isExecuting = true);
-  //   for (var scenario in scenarios) {
-  //     if (selectedScenarios[scenario] == true) {
-  //       print("🚀 Выполняется сценарий: ${scenario.name}");
-  //       for (var step in scenario.steps) {
-  //         ScreenshotTaker().start();
-  //         await positionIdentifyLoop(
-  //             step.trigger, step.action, step.command); // 💡 await
-  //         print(
-  //             "✅ Завершён шаг: Trigger=${step.trigger}, Command=${step.command}, Action=${step.action}");
-  //       }
-  //       print("✅ Сценарий '${scenario.name}' завершён\n");
-  //     }
-  //   }
-  //   setState(() => _isExecuting = false);
-  // }
-
   void _executeSelectedScenarios() async {
-    setState(() => _isExecuting = true);
+    setState(() {
+      _isExecuting = true;
+      _shouldStop = false;
+    });
 
-    // Запускаем каждый выбранный сценарий как отдельный Future
     List<Future<void>> scenarioFutures = [];
 
     for (var scenario in scenarios) {
@@ -132,22 +124,33 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
       }
     }
 
-    await Future.wait(scenarioFutures); // Ждём, пока все сценарии завершатся
+    await Future.wait(scenarioFutures);
 
     setState(() => _isExecuting = false);
   }
 
   Future<void> _runScenario(Scenario scenario) async {
     print("🚀 Запуск сценария: ${scenario.name}");
+    bool loop = loopedScenarios[scenario] == true;
 
-    for (var step in scenario.steps) {
-      ScreenshotTaker().start();
-      await positionIdentifyLoop(
-          step.trigger, step.action, step.command); // последовательность
-      print("✅ Завершён шаг: ${step.command}");
-    }
+    do {
+      for (var step in scenario.steps) {
+        if (_shouldStop) return; // 💥 Выход если отмена
 
-    print("✅ Сценарий '${scenario.name}' завершён");
+        ScreenshotTaker().start();
+        await positionIdentifyLoop(step.trigger, step.action, step.command);
+
+        if (_shouldStop) return; // 💥 Выход сразу после шага
+
+        print("✅ Завершён шаг: ${step.command}");
+      }
+
+      if (loop && !_shouldStop) {
+        print("🔁 Повтор сценария '${scenario.name}'");
+      }
+    } while (loop && !_shouldStop);
+
+    print("⏹ Завершён сценарий '${scenario.name}'");
   }
 
   @override
@@ -161,13 +164,32 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
               children: [
                 for (var scenario in scenarios)
                   ListTile(
-                    leading: Checkbox(
-                      value: selectedScenarios[scenario] ?? false,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          selectedScenarios[scenario] = value ?? false;
-                        });
-                      },
+                    leading: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Tooltip(
+                          message: 'Add to execute chain',
+                          child: Checkbox(
+                            value: selectedScenarios[scenario] ?? false,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                selectedScenarios[scenario] = value ?? false;
+                              });
+                            },
+                          ),
+                        ),
+                        Tooltip(
+                          message: "Loop",
+                          child: Checkbox(
+                            value: loopedScenarios[scenario] ?? false,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                loopedScenarios[scenario] = value ?? false;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                     title: Text(scenario.name),
                   ),
@@ -177,6 +199,17 @@ class _ScenarioScreenState extends State<ScenarioScreen> {
           ElevatedButton(
             onPressed: _isExecuting ? null : _executeSelectedScenarios,
             child: Text('Execute Selected'),
+          ),
+          ElevatedButton(
+            onPressed: _isExecuting
+                ? () {
+                    setState(() {
+                      _shouldStop = true;
+                    });
+                  }
+                : null,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text('🛑 Остановить выполнение'),
           ),
         ],
       ),
